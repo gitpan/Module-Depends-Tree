@@ -16,11 +16,11 @@ Module::Depends::Tree - A container for functions for the deptree program
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
@@ -47,7 +47,7 @@ sub print_deps {
     my $name = shift;
     my %seen = @_;
 
-    print "    " x $level if $level;
+    print '    ' x $level if $level;
     print $name, "\n";
     $used{$name}++;
 

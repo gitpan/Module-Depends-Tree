@@ -1,5 +1,12 @@
 Revision history for Module-Depends-Tree
 
+0.02    Sun Aug 20 09:54:14 CDT 2006
+
+[FIXES]
+Fixed the dependencies in Makefile.PL.  How embarrassing for a
+dependency tool to have bad dependencies!
+
+
 0.01    Sat Aug 19 23:48:49 CDT 2006
 
 This is a tool for digging into dependencies and showing a snazzy
