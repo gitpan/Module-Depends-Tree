@@ -16,11 +16,11 @@ Module::Depends::Tree - A container for functions for the deptree program
 
 =head1 VERSION
 
-Version 0.02
+Version 1.00
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '1.00';
 
 =head1 SYNOPSIS
 
@@ -38,9 +38,20 @@ our %used;
 our %stats;
 our %prereqs;
 our %metadeps;
+our %packages;
 
 # Modules to not display
 our %skippers = ( perl => 1, %{$Module::CoreList::version{5.008004}} );
+
+our $singleton_cpan;
+
+# Returns a singleton CPANPLUS::Backend
+sub cpan {
+    $singleton_cpan ||= CPANPLUS::Backend->new();
+
+    return $singleton_cpan;
+}
+
 
 sub print_deps {
     my $level = shift;
@@ -81,9 +92,9 @@ sub fetch_meta_deps {
         if ( ! -e $tarball ) {
             my $ua = LWP::UserAgent->new();
             warn "Fetching $fullpath\n";
-            $ua->get( $fullpath, ':content_file' => $tarball );
-            if ( !$ua->response->is_success ) {
-                my $error = $ua->response->status_line;
+            my $resp = $ua->get( $fullpath, ':content_file' => $tarball );
+            if ( !$resp->is_success ) {
+                my $error = $resp->status_line;
                 die "Can't read $fullpath into $tarball:\n$error";
             }
         }
@@ -114,19 +125,18 @@ sub fetch_meta_deps {
 sub process_queue {
     my @queue = @_;
 
-    my $cb = CPANPLUS::Backend->new();
-
     while ( @queue ) {
         my $name = shift @queue;
         next if $stats{$name}; # Already have it
 
-        my $stats = $stats{$name} = $cb->module_tree( $name );
+        my $stats = $stats{$name} = cpan()->module_tree( $name );
         if ( !$stats ) {
             warn "I don't know about $name\n";
             next;
         }
         next if $stats->package_is_perl_core;
 
+        push( @{$packages{ $stats->package }}, $name );
         my $deps = fetch_meta_deps( $stats ) or next;
         my $reqs = $prereqs{$name} = $deps;
 
@@ -158,10 +168,6 @@ You can find documentation for this module with the perldoc command.
 You can also look for information at:
 
 =over 4
-
-=item * Source code repository
-
-L<https://module-depends-tree.googlecode.com/svn/trunk>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 

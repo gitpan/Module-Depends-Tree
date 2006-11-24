@@ -1,5 +1,20 @@
 Revision history for Module-Depends-Tree
 
+1.00    Thu Nov 23 22:19:04 CST 2006
+
+[FIXES]
+
+Fixed my incorrect use of LWP::UserAgent.
+
+deptree now creates the temp directory before using it.
+
+The module list is now sorted strictly by module name, not the
+number of uses.
+
+Added a package list that shows all the modules used in that package.
+
+
+
 0.02    Sun Aug 20 09:54:14 CDT 2006
 
 [FIXES]

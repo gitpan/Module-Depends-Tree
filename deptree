@@ -8,11 +8,24 @@
 use strict;
 use warnings;
 
+use Getopt::Long;
 use Module::Depends::Tree;
+use ExtUtils::Command qw( mkpath );
 
 $Module::Depends::Tree::workdir = '/tmp/deptree';
 $Module::Depends::Tree::mirror  = 'file://Users/andy/minicpan';
 
+my %options = (
+    'workdir:s' => \$Module::Depends::Tree::workdir,
+    'mirror:s' =>  \$Module::Depends::Tree::mirror,
+    'help' => sub { die '--workdir and --mirror are the only two options now' },
+);
+GetOptions( %options ) or die "deptree --help for options.\n";
+
+MAKE_TEMP: {
+    local @ARGV = ( $Module::Depends::Tree::workdir );
+    mkpath;
+}
 
 MAIN: {
     my @topdeps;
@@ -20,7 +33,7 @@ MAIN: {
     print 'Dependency tree created ', scalar localtime, "\n";
     print "Created with Module::Depends::Tree $Module::Depends::Tree::VERSION\n";
 
-    print join( " ", '$', $0, @ARGV ), "\n\n";
+    print join( ' ', '$', $0, @ARGV ), "\n\n";
 
     for my $arg ( @ARGV ) {
         if ( $arg =~ /\.yaml$/ ) { # Load the deps in the yaml file
@@ -50,14 +63,31 @@ MAIN: {
         print "\n";
     }
 
-    print "\nNumber of times each module is used\n";
-    # Show table in reverse numeric, forward alpha order
-    my $used = \%Module::Depends::Tree::used;
-    for my $key ( sort { ($used->{$b} <=> $used->{$a}) || ($a cmp $b) } keys %$used ) {
-        printf( "%3d %s\n", $used->{$key}, $key );
-    }
 
-    print "\n", scalar keys %Module::Depends::Tree::stats, " total modules\n\n";
+    print "\nNumber of times each module is used\n";
+    dump_frequency_hash( \%Module::Depends::Tree::used );
+    print "\n", scalar keys %Module::Depends::Tree::used, " total modules\n\n";
+
+    my $packages = \%Module::Depends::Tree::packages;
+    for my $package ( sort keys %$packages ) {
+        print $package, "\n";
+        for my $module ( sort @{$packages->{$package}} ) {
+            print "    $module\n";
+        }
+    }
+    print "\n", scalar keys %$packages, " total packages\n\n";
 } # MAIN
 
+sub dump_frequency_hash {
+    my $hash = shift;
 
+    for my $key ( sort keys %$hash ) {
+        my $n = $hash->{$key};
+        if ( $n > 1 ) {
+            printf( "%3d %s\n", $n, $key );
+        }
+        else {
+            printf( "    %s\n", $key );
+        }
+    }
+}

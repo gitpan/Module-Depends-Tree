@@ -14,6 +14,8 @@ WriteMakefile(
     PREREQ_PM => {
         'Archive::Extract' => 0,
         'CPANPLUS::Backend' => 0,
+        'ExtUtils::Command' => 0,
+        'Getopt::Long' => 0,
         'LWP::UserAgent' => 0,
         'Module::CoreList' => 0,
         'Module::Depends' => 0,
@@ -28,7 +30,7 @@ sub MY::postamble {
     return <<'MAKE_FRAG';
 .PHONY: tags
 critic:
-	perlcritic -1 .
+	perlcritic -1 -profile perlcriticrc .
 
 MAKE_FRAG
 }
